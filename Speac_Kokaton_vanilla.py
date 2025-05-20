@@ -66,6 +66,7 @@ class Bomb(pygame.sprite.Sprite):
             explosion_group.add(Explosion(self.rect.center))
             self.kill()
 
+# 追加機能始
 class HanshaBomb(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -135,6 +136,7 @@ class bakuhatuBomb(pygame.sprite.Sprite):
                 global game_over
                 game_over = True
             self.kill()
+# 追加機能終
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
@@ -153,7 +155,8 @@ class Enemy(pygame.sprite.Sprite):
 
         if self.drop_timer > 60:
             self.drop_timer = 0
-            if random.random() < 1.0: 
+            # 追加機能始
+            if random.random() < 1.0: # 弾の確率
                 if random.random() < 0.2:
                     bomb_group.add(Bomb(self.rect.centerx, self.rect.bottom))
                 else:
@@ -162,6 +165,8 @@ class Enemy(pygame.sprite.Sprite):
                         bomb_group.add(TuijuBomb(self.rect.centerx, self.rect.bottom, player))
                 if random.random() < 0.5:
                             bomb_group.add(bakuhatuBomb(self.rect.centerx, self.rect.bottom))
+            # 追加機能終
+
 
 
 
