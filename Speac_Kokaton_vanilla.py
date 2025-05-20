@@ -1,3 +1,4 @@
+import math
 import pygame
 import sys
 import random
@@ -39,15 +40,24 @@ class Player(pygame.sprite.Sprite):
             self.rect.y += speed
 
 class Beam(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, angle=0):
         super().__init__()
-        self.image = beam_img
+        self.original_image = beam_img
+        self.image = pygame.transform.rotate(self.original_image, -angle)
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = -10
+
+        self.angle = math.radians(angle)
+        self.speed = 10
+        self.vx = self.speed * math.sin(self.angle)
+        self.vy = -self.speed * math.cos(self.angle)
 
     def update(self):
-        self.rect.y += self.speed
-        if self.rect.bottom < 0:
+        self.rect.x += self.vx
+        self.rect.y += self.vy
+
+        # 画面外に出たら削除
+        if (self.rect.bottom < 0 or self.rect.top > HEIGHT or
+            self.rect.right < 0 or self.rect.left > WIDTH):
             self.kill()
 
 class Bomb(pygame.sprite.Sprite):
@@ -135,14 +145,14 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            if len(beam_group) < 100:
+                angles = [-15, 0, 15] if pygame.key.get_mods() & pygame.KMOD_LSHIFT else [0]
+                for angle in angles:
+                    beam_group.add(Beam(player.rect.centerx, player.rect.top, angle))
     if not game_over:
         keys = pygame.key.get_pressed()
         player.update(keys)
-
-        if keys[pygame.K_SPACE]:
-            if len(beam_group) < 5:
-                beam_group.add(Beam(player.rect.centerx, player.rect.top))
 
         if keys[pygame.K_RETURN] and score >= 2000 and len(gravity_group) == 0:
             gravity_group.add(Gravity(400))
@@ -151,7 +161,7 @@ while True:
         enemy_timer += 1
         if enemy_timer > 30:
             enemy_timer = 0
-            if len(enemy_group) < 3:
+            if len(enemy_group) < 3:   
                 enemy_group.add(Enemy())
 
         if gravity_group:
