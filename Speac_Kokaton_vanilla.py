@@ -26,6 +26,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = player_img
         self.rect = self.image.get_rect(center=(WIDTH//2, HEIGHT - 60))
+        self.hp = 3  # HP（ライフ）追加
 
     def update(self, keys):
         speed = 8 if keys[pygame.K_LSHIFT] else 5
@@ -141,7 +142,7 @@ while True:
         player.update(keys)
 
         if keys[pygame.K_SPACE]:
-            if len(beam_group) < 5:
+            if len(beam_group) < 10:
                 beam_group.add(Beam(player.rect.centerx, player.rect.top))
 
         if keys[pygame.K_RETURN] and score >= 2000 and len(gravity_group) == 0:
@@ -181,7 +182,7 @@ while True:
                     explosion_group.add(Explosion(enemy.rect.center))
             score += 100 * len(collisions)
 
-        # ビームと爆弾の衝突判定（追加）
+        # ビームと爆弾の衝突判定
         bomb_collisions = pygame.sprite.groupcollide(beam_group, bomb_group, True, True)
         if bomb_collisions:
             for bomb_list in bomb_collisions.values():
@@ -189,12 +190,21 @@ while True:
                     explosion_group.add(Explosion(bomb.rect.center))
             score += 50 * len(bomb_collisions)
 
-        if pygame.sprite.spritecollideany(player, bomb_group):
+        # HPによる衝突処理（ここが変更点）
+        hit_bomb = pygame.sprite.spritecollideany(player, bomb_group)
+        hit_enemy = pygame.sprite.spritecollideany(player, enemy_group)
+        if hit_bomb:
+            explosion_group.add(Explosion(player.rect.center))
+            hit_bomb.kill()
+            player.hp -= 1
+        if hit_enemy:
+            explosion_group.add(Explosion(player.rect.center))
+            hit_enemy.kill()
+            player.hp -= 1
+        if player.hp <= 0:
             game_over = True
 
-        if pygame.sprite.spritecollideany(player, enemy_group):
-            game_over = True
-
+        # 描画
         gravity_group.draw(screen)
         player_group.draw(screen)
         beam_group.draw(screen)
@@ -204,6 +214,9 @@ while True:
 
         score_text = font.render(f"Score: {score}", True, WHITE)
         screen.blit(score_text, (10, 10))
+
+        hp_text = font.render(f"HP: {player.hp}", True, RED)
+        screen.blit(hp_text, (10, 40))
 
     else:
         game_over_text = font.render("GAME OVER", True, RED)
