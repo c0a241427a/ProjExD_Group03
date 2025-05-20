@@ -71,10 +71,17 @@ class Enemy(pygame.sprite.Sprite):
         self.image = enemy_img
         self.rect = self.image.get_rect(center=(random.randint(40, WIDTH-40), -40))
         self.speed = random.randint(2, 4)
+        self.dx = random.choice([-2, -1, 1, 2])
         self.drop_timer = 0
+        self.fast_bomb = random.random() < 0.2
 
     def update(self):
         self.rect.y += self.speed
+        self.rect.x += self.dx
+
+        if self.rect.left < 0 or self.rect.right > WIDTH:
+            self.dx *= -1
+
         if self.rect.top > HEIGHT:
             self.kill()
 
@@ -82,7 +89,10 @@ class Enemy(pygame.sprite.Sprite):
         if self.drop_timer > 60:
             self.drop_timer = 0
             if random.random() < 0.2:
-                bomb_group.add(Bomb(self.rect.centerx, self.rect.bottom))
+                bomb = Bomb(self.rect.centerx, self.rect.bottom)
+                if self.fast_bomb:
+                    bomb.speed = 10
+                bomb_group.add(bomb)
 
 class Gravity(pygame.sprite.Sprite):
     def __init__(self, life):
