@@ -70,13 +70,13 @@ class Bomb(pygame.sprite.Sprite):
 class HanshaBomb(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        radius = 8
+        radius = 8 #  弾の大きさ
         self.image = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
         pygame.draw.circle(self.image, (255, 0, 0), (radius, radius), radius)
         self.rect = self.image.get_rect(center=(x, y))
         self.speed_y = 4
         self.speed_x = 5
-        self.direction_x = 1
+        self.direction_x = 1 
         self.direction_y = -1
 
     def update(self):
@@ -102,7 +102,7 @@ class TuijuBomb(pygame.sprite.Sprite):
         pygame.draw.circle(self.image, (0, 255, 0), (radius, radius), radius)
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 2
-        self.target = target
+        self.target = target  
 
     def update(self):
         dx = self.target.rect.centerx - self.rect.centerx
@@ -119,11 +119,11 @@ class TuijuBomb(pygame.sprite.Sprite):
 class bakuhatuBomb(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        radius = 10
+        radius = 15
         self.image = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
         pygame.draw.circle(self.image, (255, 165, 0), (radius, radius), radius)
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 30
+        self.speed = 30  # 弾の速さ
         self.timer = 10  # 爆発までの時間
 
     def update(self):
