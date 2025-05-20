@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import math
 
 pygame.init()
 WIDTH, HEIGHT = 480, 640
@@ -65,6 +66,76 @@ class Bomb(pygame.sprite.Sprite):
             explosion_group.add(Explosion(self.rect.center))
             self.kill()
 
+class HanshaBomb(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        radius = 8
+        self.image = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (255, 0, 0), (radius, radius), radius)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed_y = 4
+        self.speed_x = 5
+        self.direction_x = 1
+        self.direction_y = -1
+
+    def update(self):
+        self.rect.y += self.speed_y * self.direction_y
+        self.rect.x += self.speed_x * self.direction_x
+
+        if self.rect.left <= 0 or self.rect.right >= WIDTH:
+            self.direction_x *= -1
+
+        if self.rect.top <= 0:
+            self.direction_y *= -1
+
+        if self.rect.top > HEIGHT:
+            explosion_group.add(Explosion(self.rect.center))
+            self.kill()
+
+    
+class TuijuBomb(pygame.sprite.Sprite):
+    def __init__(self, x, y, target):
+        super().__init__()
+        radius = 10
+        self.image = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (0, 255, 0), (radius, radius), radius)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed = 2
+        self.target = target
+
+    def update(self):
+        dx = self.target.rect.centerx - self.rect.centerx
+        dy = self.target.rect.centery - self.rect.centery
+        dist = math.hypot(dx, dy)
+        if dist != 0:
+            dx, dy = dx / dist, dy / dist
+            self.rect.x += dx * self.speed
+            self.rect.y += dy * self.speed
+
+        if self.rect.top > HEIGHT or self.rect.left < 0 or self.rect.right > WIDTH:
+            self.kill()
+
+class bakuhatuBomb(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        radius = 10
+        self.image = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (255, 165, 0), (radius, radius), radius)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed = 30
+        self.timer = 10  # 爆発までの時間
+
+    def update(self):
+        self.rect.y += self.speed
+        self.timer -= 1
+        if self.timer <= 0 or self.rect.top > HEIGHT:
+            explosion_group.add(Explosion(self.rect.center))
+            # 爆風の範囲内にあるプレイヤーやビームに影響を与える
+            if self.rect.colliderect(player.rect):
+                global game_over
+                game_over = True
+            self.kill()
+
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -75,14 +146,25 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.speed
+        self.drop_timer += 1  
+        
         if self.rect.top > HEIGHT:
             self.kill()
 
-        self.drop_timer += 1
         if self.drop_timer > 60:
             self.drop_timer = 0
-            if random.random() < 0.2:
-                bomb_group.add(Bomb(self.rect.centerx, self.rect.bottom))
+            if random.random() < 1.0: 
+                if random.random() < 0.2:
+                    bomb_group.add(Bomb(self.rect.centerx, self.rect.bottom))
+                else:
+                    bomb_group.add(HanshaBomb(self.rect.centerx, self.rect.bottom))
+                if random.random() < 0.3:
+                        bomb_group.add(TuijuBomb(self.rect.centerx, self.rect.bottom, player))
+                if random.random() < 0.5:
+                            bomb_group.add(bakuhatuBomb(self.rect.centerx, self.rect.bottom))
+
+
+
 
 class Gravity(pygame.sprite.Sprite):
     def __init__(self, life):
