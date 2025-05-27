@@ -38,14 +38,14 @@ class Player(pygame.sprite.Sprite):
         self.hp = 3  # HP（ライフ）追加
 
     def update(self, keys):
-        speed = 8 if keys[pygame.K_LSHIFT] else 5
-        if keys[pygame.K_LEFT] and self.rect.left > 0:
+        speed =8 if keys[pygame.K_LSHIFT] else 5
+        if keys[pygame.K_a] and self.rect.left > 0:
             self.rect.x -= speed
-        if keys[pygame.K_RIGHT] and self.rect.right < WIDTH:
+        if keys[pygame.K_d] and self.rect.right < WIDTH:
             self.rect.x += speed
-        if keys[pygame.K_UP] and self.rect.top > 0:
+        if keys[pygame.K_w] and self.rect.top > 0:
             self.rect.y -= speed
-        if keys[pygame.K_DOWN] and self.rect.bottom < HEIGHT:
+        if keys[pygame.K_s] and self.rect.bottom < HEIGHT:
             self.rect.y += speed
 
 class Beam(pygame.sprite.Sprite):
@@ -111,7 +111,6 @@ class HanshaBomb(pygame.sprite.Sprite):
         if self.rect.top > HEIGHT:
             explosion_group.add(Explosion(self.rect.center))
             self.kill()
-
     
 class TuijuBomb(pygame.sprite.Sprite):
     def __init__(self, x, y, target):
@@ -198,10 +197,6 @@ class Enemy(pygame.sprite.Sprite):
                 bomb_group.add(HanshaBomb(self.rect.centerx, self.rect.bottom))
             # 追加機能終
 
-
-
-
-
 class Gravity(pygame.sprite.Sprite):
     def __init__(self, life):
         super().__init__()
@@ -255,7 +250,7 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+        if not game_over and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             if len(beam_group) < 100:
                 angles = [-15, 0, 15] if pygame.key.get_mods() & pygame.KMOD_LSHIFT else [0]
                 for angle in angles:
@@ -269,7 +264,7 @@ while True:
                 beam_group.add(Beam(player.rect.centerx, player.rect.top))
 
         if keys[pygame.K_RETURN] and skill_points >= 300 and len(gravity_group) == 0:
-            gravity_group.add(Gravity(400))
+            gravity_group.add(Gravity(1))
             skill_points -= 300 #追加機能1:重力場にスキルポイントを使う
 
         enemy_timer += 1
@@ -345,7 +340,7 @@ while True:
         screen.blit(skill_text, (10, 40))
 
         hp_text = font.render(f"HP: {player.hp}", True, RED)
-        screen.blit(hp_text, (10, 40))
+        screen.blit(hp_text, (10, 70))
 
     else:
         game_over_text = font.render("GAME OVER", True, RED)
