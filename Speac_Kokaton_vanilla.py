@@ -2,6 +2,8 @@ import math
 import pygame
 import sys
 import random
+import pygame.mixer
+import time
 
 pygame.init()
 WIDTH, HEIGHT = 480, 640
@@ -21,6 +23,12 @@ beam_img = pygame.image.load("fig/beam.png")
 beam_img = pygame.transform.rotate(beam_img, 90)
 sad_kokaton_img = pygame.image.load("fig/8.png")
 explosion_img = pygame.image.load("fig/explosion.gif").convert_alpha()
+
+#音
+pygame.mixer.init()
+explosion_sound = pygame.mixer.Sound("fig/explosion.mp3")
+beam_sound = pygame.mixer.Sound("fig/beam1.mp3")
+gameover_sound = pygame.mixer.Sound("fig/gameover.mp3")
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -51,6 +59,7 @@ class Beam(pygame.sprite.Sprite):
         self.speed = 10
         self.vx = self.speed * math.sin(self.angle)
         self.vy = -self.speed * math.cos(self.angle)
+        beam_sound.play() #　←　ビーム音を鳴らす
 
     def update(self):
         self.rect.x += self.vx
@@ -124,6 +133,7 @@ class Explosion(pygame.sprite.Sprite):
         self.image = explosion_img
         self.rect = self.image.get_rect(center=pos)
         self.life = 15
+        explosion_sound.play() # ←　爆発音を鳴らす
 
     def update(self):
         self.life -= 1
@@ -139,6 +149,7 @@ gravity_group = pygame.sprite.Group()
 explosion_group = pygame.sprite.Group()
 
 score = 0
+skill_points = 0  # 追加1：スキルポイント用変数
 font = pygame.font.SysFont("Arial", 24)
 
 enemy_timer = 0
@@ -169,9 +180,9 @@ while True:
             if len(beam_group) < 10:
                 beam_group.add(Beam(player.rect.centerx, player.rect.top))
 
-        if keys[pygame.K_RETURN] and score >= 2000 and len(gravity_group) == 0:
+        if keys[pygame.K_RETURN] and skill_points >= 300 and len(gravity_group) == 0:
             gravity_group.add(Gravity(400))
-            score -= 2000
+            skill_points -= 300 #追加機能1:重力場にスキルポイントを使う
 
         enemy_timer += 1
         if enemy_timer > 30:
@@ -186,11 +197,13 @@ while True:
                     explosion_group.add(Explosion(enemy.rect.center))
                     enemy.kill()
                     score += 100
+                    skill_points += 10 # ← 追加機能1スキルポイントの加算
             for bomb in bomb_group:
                 if gravity.rect.colliderect(bomb.rect):
                     explosion_group.add(Explosion(bomb.rect.center))
                     bomb.kill()
                     score += 50
+                    skill_points += 5 #追加機能1スキルポイントも加算
 
         gravity_group.update()
         beam_group.update()
@@ -205,6 +218,7 @@ while True:
                 for enemy in enemy_list:
                     explosion_group.add(Explosion(enemy.rect.center))
             score += 100 * len(collisions)
+            skill_points += 10 * len(collisions) # ← 追加機能1:スキルポイントの加算
 
         # ビームと爆弾の衝突判定
         bomb_collisions = pygame.sprite.groupcollide(beam_group, bomb_group, True, True)
@@ -213,6 +227,7 @@ while True:
                 for bomb in bomb_list:
                     explosion_group.add(Explosion(bomb.rect.center))
             score += 50 * len(bomb_collisions)
+            skill_points += 5 * len(bomb_collisions) #追加機能1:スキルポイントの加算
 
         # HPによる衝突処理（ここが変更点）
         hit_bomb = pygame.sprite.spritecollideany(player, bomb_group)
@@ -237,7 +252,9 @@ while True:
         explosion_group.draw(screen)
 
         score_text = font.render(f"Score: {score}", True, WHITE)
+        skill_text = font.render(f"Skill: {skill_points}", True, WHITE)
         screen.blit(score_text, (10, 10))
+        screen.blit(skill_text, (10, 40))
 
         hp_text = font.render(f"HP: {player.hp}", True, RED)
         screen.blit(hp_text, (10, 40))
