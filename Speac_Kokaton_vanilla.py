@@ -9,7 +9,6 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("space_kokaton")
 clock = pygame.time.Clock()
 
-# 色定義
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
